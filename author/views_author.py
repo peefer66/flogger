@@ -9,4 +9,6 @@ author_app = Blueprint('author_app', __name__)
 def register():
     form = RegisterForm()
 
-    return render_template('/author/register.html', form=form)
+    if form.validate_on_submit():
+        return 'Form Validated'
+    return render_template('author/register.html', form=form)
