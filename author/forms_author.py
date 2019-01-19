@@ -21,7 +21,7 @@ class RegisterForm(FlaskForm):
             raise ValidationError('Email already in use')
 
 class LoginForm(FlaskForm):
-    email = EmailField('Email Adress', [validators.InputRequired(),validators.Email()])
+    email = EmailField('Email Address', [validators.InputRequired(),validators.Email()])
     password = PasswordField('Password', [validators.InputRequired(), validators.Length(min=4, max=80)])
 
     # validate the user and passowrd with the database

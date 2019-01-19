@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, url_for, session, redirect
 from werkzeug.security import generate_password_hash
 
 from author.models_author import Author
@@ -36,6 +36,11 @@ def login():
     error = None
 
     if form.validate_on_submit():
-        return 'User Logged In'
+        #Create 2 sessions for the Author id and full name
+        author = Author.query.filter_by(email=form.email.data).first()
+        session['full_name'] = author.full_name
+        session['id']= author.id 
+        return redirect(url_for('blog_app.index'))
+    # If he login is invalid refresh the login page
     return render_template('author/login.html', form=form, error=error)
 
