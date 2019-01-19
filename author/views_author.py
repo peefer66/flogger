@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, session, redirect
+from flask import Blueprint, render_template, url_for, session, redirect, flash
 from werkzeug.security import generate_password_hash
 
 from author.models_author import Author
@@ -25,9 +25,10 @@ def register():
         #Save to database
         db.session.add(author)
         db.session.commit()
-        # Print to web
-        return f'Author ID: {author.id}'
-    # If not validate re-load register page 
+        # flash registered message
+        flash('You are now registered')
+        return redirect(url_for('.login'))
+        # If not validate re-load register page 
     return render_template('author/register.html', form=form)
 
 @author_app.route('/login', methods=['GET', 'POST'])
@@ -43,4 +44,12 @@ def login():
         return redirect(url_for('blog_app.index'))
     # If he login is invalid refresh the login page
     return render_template('author/login.html', form=form, error=error)
+
+@author_app.route('/logout')
+def logout():
+    session.pop('id')
+    session.pop('full_name')
+    flash('User logged out')
+    return redirect(url_for('.login'))
+    
 
