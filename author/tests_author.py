@@ -43,18 +43,52 @@ class AuthorTest(unittest.TestCase):
         )
     # Test for registration
     def test_user_registration(self):
-        rv = self.app.post('/register', data=self.user_dict(),
-          follow_redirects=True) # registration will be redirected to login with the assert phrase
+        rv = self.app.post('/register', data=self.user_dict(),follow_redirects=True) # registration will be redirected to login with the assert phrase
         assert 'You are now registered' in str(rv.data)
-        # test for record in the database. create a context of the app
+        # If we want to check things as we were running in a views.py
+        # we need to instantiate a context
         with self.app as c:
             c.get('/') #get the home page
             assert Author.query.filter_by(email=self.user_dict()['email']).count() == 1
 
-        # test for matching passwords
+        # Try to register with the same email
+        # Original email already registerd in test_user_registration()
+        rv = self.app.post('/register', data=self.user_dict(), follow_redirects=True)
+        assert 'Email already in use' in str(rv.data)
+
+        # test for unmatch passwords
         user2 = self.user_dict()
         user2['email'] = 'john@example.com'
+        user2['password'] = 'test123'
         user2['confirm'] = 'test456'
         rv = self.app.post('/register',data=user2, follow_redirects=True)
         assert 'Passwords must match' in str(rv.data)
+
+    
+    def test_user_login(self):
+        # Test Login
+
+        # register the user
+        rv = self.app.post('/register', data=self.user_dict(), follow_redirects=True)
+
+        # We need an active HTTP conection for the next two lines - login & logout - 
+        # so  we need can enclose in a contex
+        # Try to login
+        with self.app as c:
+            rv = c.post('/login', data=self.user_dict(), follow_redirects=True)
+            assert session['id'] == 1
+
+        #Test Logout
+        with self.app as c:
+            rv = c.get('/logout', data=self.user_dict(),follow_redirects=True)
+            assert session.get('id') is None
+
+        # Test for wrong password
+        user2 = self.user_dict()
+        user2['password'] = 'test456'
+        rv = self.app.post('/login', data=user2, follow_redirects=True )
+        assert 'Incorrect email or password' in str(rv.data)
+
+       
+     
 
