@@ -15,7 +15,7 @@ class Post(db.Model):
     live = db.Column(db.Boolean)
 
     author = db.relationship('Author', db.backref('posts', lazy='dynamic'))
-    catagory = db.relationship('Catagory',db.backref('posts', lazy=dynamic))
+    catagory = db.relationship('Catagory',db.backref('posts', lazy='dynamic'))
 
     def __init__(self, author, title, body, catagory=None,
         slug=None, publish_date=None, live=True):
@@ -30,10 +30,10 @@ class Post(db.Model):
             self.publish_date = datetime.utcnow()()
         self.live = live
 
-    def __repr__(self, name):
+    def __repr__(self):
         return '<Post %r>' %self.title
 
-class Catagory(db.Model):
+class Category(db.Model):
     id = db.Column(db.integer, primary_key=True)
     name = db.Column(db.String(50))
 
