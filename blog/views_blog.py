@@ -5,6 +5,7 @@ from blog.forms_blog import PostForm
 from blog.models_blog import Post, Category
 from author.models_author import Author
 from application import db
+from author.decorators import login_required
 
 blog_app =Blueprint('blog_app', __name__)
 
@@ -12,7 +13,10 @@ blog_app =Blueprint('blog_app', __name__)
 def index():
     return render_template('blog/index.html')
 
+#we want to make certain routes available if the user is logged in
+# eg the post route. So use a decorator  - @login_required
 @blog_app.route('/post', methods=('GET', 'POST'))
+@login_required # decorator.py
 def post():
     form = PostForm()
     # Check for new category
