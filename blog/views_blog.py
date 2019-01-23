@@ -53,7 +53,7 @@ def post():
         post.slug = slug
         db.session.commit()
 
-        flash('Post submitted')
+        flash('Article posted')
         return redirect(url_for('.article', slug=slug))
     return render_template('blog/post.html', form=form)
 
