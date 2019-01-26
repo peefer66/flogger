@@ -1,4 +1,4 @@
-from flask import Blueprint, session, render_template, redirect, flash, url_for
+from flask import Blueprint, session, render_template, redirect, flash, url_for, request
 from slugify import slugify
 
 from blog.forms_blog import PostForm
@@ -8,10 +8,20 @@ from application import db
 from author.decorators import login_required
 
 blog_app =Blueprint('blog_app', __name__)
+POSTS_PER_PAGE = 5
 
 @blog_app.route('/')
+@login_required
 def index():
-    return render_template('blog/index.html')
+    # Pagination
+    # Define a page variable that will define a page parameter being passed to the route
+    # if none it will assigne the number 1 to it
+    # Daisy chain paginate has three parameters page we are on, how many post on the page we want and if we want to 
+    # force a 404 error if forced to another page
+    page = int(request.values.get('page', '1'))    
+    posts = Post.query.filter_by(live=True).order_by(Post.publish_date.desc()).paginate(page, POSTS_PER_PAGE, False) 
+    return render_template('blog/index.html', posts=posts)
+    
 
 #we want to make certain routes available if the user is logged in
 # eg the post route. So use a decorator  - @login_required
