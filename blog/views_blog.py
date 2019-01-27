@@ -1,11 +1,15 @@
+import os
+import uuid
 from flask import Blueprint, session, render_template, redirect, flash, url_for, request
 from slugify import slugify
+from PIL import Image
 
 from blog.forms_blog import PostForm
 from blog.models_blog import Post, Category
 from author.models_author import Author
 from application import db
 from author.decorators import login_required
+from settings import BLOG_POST_IMAGES_PATH
 
 blog_app =Blueprint('blog_app', __name__)
 POSTS_PER_PAGE = 5
@@ -31,6 +35,24 @@ def post():
     form = PostForm()
     # Check for new category
     if form.validate_on_submit():
+
+        image_id = None
+            #Check for image
+            #Generate a random id of 36 chrs 
+            # convert all to png 
+            # create a file path
+            # save to file path
+        if form.image.data:
+            f = form.image.data
+            image_id = str(uuid.uuid4())
+            file_name = image_id + '.png'
+            file_path = os.path.join(
+                BLOG_POST_IMAGES_PATH, file_name
+                    )
+            Image.open(f).save(file_path)
+            # save large version for article template and small for index template  
+            _image_resize(BLOG_POST_IMAGES_PATH, image_id,600, 'lg')
+            _image_resize(BLOG_POST_IMAGES_PATH, image_id, 300,'sm')
     # New category 
         if form.new_category.data:
     # Create an instance of the catagory with the description on it
@@ -46,14 +68,17 @@ def post():
     #If there is no new category assign to whatever is on the drop down
         else:
             category = form.category.data
-
         # Data base opperations
         author = Author.query.get(session['id']) # This assumes a user is already logged 
         title = form.title.data.strip() # Strip leading and tailing blank
         body = form.body.data.strip()
         # Create a Post sqlalchemy object
-        post = Post(author=author, title=title,
-         body=body, category=category)
+        post = Post(author=author,
+             title=title,
+             body=body,
+             image=image_id,
+             category=category
+             )
         # save to database
         db.session.add(post)
         db.session.commit()
@@ -73,4 +98,21 @@ def post():
 def article(slug):
         post = Post.query.filter_by(slug=slug).first_or_404()
         return render_template('blog/article.html', post=post)
+
+
+def _image_resize(original_file_path,image_id, image_base, extension):
+    # This function resizes the image width keeping the height
+    # proportioanl so not to deform the aspect ratio
+    file_path = os.path.join(
+        original_file_path, image_id + '.png'
+    )
+    image = Image.open(file_path)
+    wpercent = (image_base / float(image.size[0]))
+    hsize = int((float(image.size[1]) * float(wpercent)))
+    image = image.resize((image_base, hsize), Image.ANTIALIAS)
+    modified_file_path = os.path.join(
+        original_file_path, image_id + '.' + extension + '.png'
+    )
+    image.save(modified_file_path)
+    return
 

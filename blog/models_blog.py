@@ -8,6 +8,10 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
     title = db.Column(db.String(80))
     body = db.Column(db.Text)
+    #Store the image name and not the binary file on the database
+    # 36 chr because going to use a randomly generated hash with UUID
+    # that generates strings of 36 characters
+    image = db.Column(db.String(36))
     slug = db.Column(db.String(255), unique=True) # Max for varchar indexes
     publish_date = db.Column(db.DateTime)
     live = db.Column(db.Boolean)
@@ -18,11 +22,12 @@ class Post(db.Model):
     category = db.relationship('Category',
                                 backref=db.backref('posts', lazy='dynamic'))
 
-    def __init__(self, author, title, body, category=None,
+    def __init__(self, author, title, body, image, category=None,
         slug=None, publish_date=None, live=True):
         self.author_id = author.id
         self.title = title
         self.body = body
+        self.image = image
         if category:
             self.category_id = category.id
         self.slug = slug
