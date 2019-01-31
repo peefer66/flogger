@@ -64,3 +64,26 @@ class PostTest(unittest.TestCase):
             follow_redirects=True)
         assert 'Article posted' in str(rv.data)
         assert 'Tech' in str(rv.data) # category  
+
+    def test_blog_post_update_delete(self):
+
+        rv = self.app.post('/register', data=self.user_dict())
+        rv = self.app.post('/login', data=self.user_dict())
+        rv = self.app.post('/post', data=self.post_dict())
+
+        #Update
+        post2 = self.post_dict()
+        post2['title'] = 'My new awesome post'
+        rv = self.app.post('/edit/1-' + slugify(self.post_dict()['title']),
+        data=post2,
+        follow_redirects=True)
+        
+        assert 'Article edited' in str(rv.data)
+        assert 'My new awesome post' in str(rv.data)
+
+        # Delete
+        rv = self.app.get('/delete/1-' + slugify(post2['title']), 
+            follow_redirects=True)
+        assert 'Article deleted' in str(rv.data)
+
+
