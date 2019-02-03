@@ -107,6 +107,8 @@ def post():
 def edit(slug):
     post = Post.query.filter_by(slug=slug).first_or_404()
     form = PostForm(obj=post)
+    # if we see the tags on the request  use that otherwise on the first laod 
+    # parse the tags using the helper function
     tags_field = request.values.get('tags_field', _load_tags_field(post))
 
     if form.validate_on_submit():
@@ -139,6 +141,7 @@ def edit(slug):
         if form.title.data != original_title:
             post.slug = slugify(str(post.id) + '-' + form.title.data)
 
+        # Save tags using helper function
         _save_tags(post, tags_field)
         
         db.session.commit()
@@ -190,6 +193,7 @@ def _image_resize(original_file_path,image_id, image_base, extension):
     image.save(modified_file_path)
     return
 
+# Helper fnction for the tag
 def _save_tags(post, tags_field):
     post.tags.clear()
     for tag_item in tags_field.split(','):
@@ -200,6 +204,11 @@ def _save_tags(post, tags_field):
         post.tags.append(tag)
     return post
 
+# Another helper function for the tag
+# create a list of tags
+# append the tag items
+# return the string comma seperated and return minus the last two items
+#  (These will be a comma and a space)
 def _load_tags_field(post):
     tags_field = ''
     for tag in post.tags:
