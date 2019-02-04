@@ -25,7 +25,9 @@ def index():
     # force a 404 error if forced to another page
     page = int(request.values.get('page', '1'))
     posts = Post.query.filter_by(live=True).order_by(Post.publish_date.desc()).paginate(page, POSTS_PER_PAGE, False)
-    return render_template('blog/index.html', posts=posts)
+    return render_template('blog/index.html',
+     posts=posts,
+     title='Latest Posts')
 
 
 #we want to make certain routes available if the user is logged in
@@ -169,7 +171,33 @@ def delete(slug):
     flash('Article deleted')
     return redirect(url_for('.index'))
 
+# For filterin post by category
+@blog_app.route('/categories/<category_id>')
+def categories(category_id):
+    category = Category.query.filter_by(id=category_id).first_or_404()
+    page = int(request.values.get('page', '1'))
+    posts = Post.query.filter_by(category=category, live=True)\
+        .order_by(Post.publish_date.desc())\
+        .paginate(page, POSTS_PER_PAGE, False)
+    return render_template('blog/category_posts.html',
+        posts=posts,
+        title=category,
+        category_id=category_id
+    )
 
+#Filter by Tag - querybthe tag  not the post due to many to mny relationship
+@blog_app.route('/tags/<tag>')
+def tags(tag):
+    tag = Tag.query.filter_by(name=tag).first_or_404()
+    page = int(request.values.get('page', '1'))
+    posts = tag.posts.filter_by(live=True)\
+        .order_by(Post.publish_date.desc())\
+        .paginate(page, POSTS_PER_PAGE, False)
+    return render_template('blog/tag_posts.html',
+        posts=posts,
+        title="Tag: " + str(tag),
+        tag=str(tag)
+    )
 
 @blog_app.route('/post/<slug>')
 def article(slug):
